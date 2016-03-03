@@ -19,8 +19,8 @@ Use in your namespace:
 Open a reader on a X! Tandem result file containing and call
 'group-seq'. This will return a lazy list of zippers, one for each
 model in the file, that can be used with the usual Clojure XML parsing
-libraries. 'peptide-seq' called on a group zipper returns a map of
-information about the peptide identification.
+libraries. 'peptide-seq' called on a group zipper returns a collection
+of maps containing information about the peptide identification.
 
 ```clojure
 clj-tandem.core> (def xtf "/path/to/file.xml")
@@ -29,7 +29,15 @@ clj-tandem.core> (with-open [r (reader tf)]
                    (->> (group-seq r)
                         (mapcat peptide-seq)
                         first))
-{:protein-info {:expect "-34.9", :id "2693.1", :uid "10067", :label "tr|I3LJX2|I3LJX2_PIG Uncharacterized protein OS=Sus scrofa PE=1 SV=1", :sumI "5.21", :description "Uncharacterized protein OS=Sus scrofa PE=1 SV=1", :accession "tr|I3LJX2|I3LJX2_PIG"}, :mh "1099.5491", :mods (), :pre "AGPK", :expect 0.017, :protein-length 221, :missed_cleavages "1", :rank 1, :start 137, :x_ions "0", :b_ions "3", :nextscore "353", :hyperscore "496", :c_ions "0", :b_score "1", :y_ions "4", :a_score "0", :z_ions "0", :id "2693.1.1", :delta "0.0024", :post "GLTG", :a_ions "0", :seq "GADGAPGKDGVR", :end 148, :z_score "0", :x_score "0", :y_score "1", :c_score "0"}
+{:protein-info {:expect "-34.9", :id "2693.1", :uid "10067", :label
+"tr|I3LJX2|I3LJX2_PIG Uncharacterized protein OS=Sus scrofa PE=1 SV=1",
+:sumI "5.21", :description "Uncharacterized protein OS=Sus scrofa PE=1 SV=1",
+:accession "tr|I3LJX2|I3LJX2_PIG"}, :mh "1099.5491", :mods (), :pre "AGPK",
+:expect 0.017, :protein-length 221, :missed_cleavages "1", :rank 1, :start 137,
+:x_ions "0", :b_ions "3", :nextscore "353", :hyperscore "496", :c_ions "0",
+:b_score "1", :y_ions "4", :a_score "0", :z_ions "0", :id "2693.1.1", :delta
+"0.0024", :post "GLTG", :a_ions "0", :seq "GADGAPGKDGVR", :end 148,
+:z_score "0", :x_score "0", :y_score "1", :c_score "0"}
 clj-tandem.core> 
 ```
 
