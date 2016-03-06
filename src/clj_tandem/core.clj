@@ -1,5 +1,8 @@
 (ns clj-tandem.core
-  (:require [clojure.data.xml :refer [parse]]
+  (:require [me.raynes.fs :as fs]
+            [clj-commons-exec :refer [sh]]
+            [clojure.java.io :refer [writer]]
+            [clojure.data.xml :refer [parse element emit]]
             [clojure.data.zip.xml :refer [xml-> xml1-> text attr= attr]]
             [clojure.zip :refer [xml-zip node]]
             [clojure.string :refer [split]]))
@@ -178,3 +181,128 @@
               (map #(->> (map (fn [x] (x %)) prot-rep-keys)
                          (interpose ",")
                          (apply str)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; running xtandem
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn default-inputs
+  []
+  {"list path, taxonomy information" ""
+   
+   "spectrum, fragment monoisotopic mass error" "100"
+   "spectrum, parent monoisotopic mass error plus" "50"
+   "spectrum, parent monoisotopic mass error minus" "50"
+   "spectrum, parent monoisotopic mass isotope error" "no"
+   "spectrum, fragment monoisotopic mass error units" "ppm"
+   "spectrum, parent monoisotopic mass error units" "ppm"
+   "spectrum, fragment mass type" "monoisotopic" 
+   "spectrum, dynamic range" "10000.0"
+   "spectrum, total peaks" "400"
+   "spectrum, maximum parent charge" "5"
+   "spectrum, use noise suppression" "yes"
+   "spectrum, minimum parent m+h" "600"
+   "spectrum, minimum fragment mz" "125.0"
+   "spectrum, minimum peaks" "10"
+   "spectrum, threads" "4"
+   "spectrum, sequence batch size" "1000"
+   "spectrum, use conditioning" "no"
+   
+   "residue, modification mass" "57.021464@C"
+   "residue, potential modification mass" "15.994915@M"
+   
+   "protein, taxon" "database"
+   "protein, cleavage site" "[RK]|{P}"
+   "protein, cleavage semi" "no"
+   "protein, homolog management" "no"
+   
+   "refine" "no"
+
+   "scoring, minimum ion count" "1"
+   "scoring, maximum missed cleavage sites" "2"
+   "scoring, x ions" "no"
+   "scoring, y ions" "yes"
+   "scoring, z ions" "no"
+   "scoring, a ions" "no"
+   "scoring, b ions" "yes"
+   "scoring, c ions" "no"
+   "scoring, cyclic permutation" "no"
+   "scoring, include reverse" "no"
+   "scoring, pluggable scoring" "yes"
+    
+   "output, message" "."
+   "output, results" "all"
+   "output, maximum valid expectation value" "0.1"
+   "output, one sequence copy" "no"
+   "output, sequence path" ""
+   "output, path" ""
+   "output, sort results by" "spectrum"
+   "output, path hashing" "no"
+   "output, xsl path" "tandem-style.xsl"
+   "output, parameters" "yes"
+   "output, performance" "yes"
+   "output, spectra" "yes"
+   "output, histograms" "yes"
+   "output, proteins" "yes"
+   "output, sequences" "yes"
+   "output, histogram column width" "30"})
+
+(defn- init-database [db]
+  (if (fs/file? db)
+    (let [temp (fs/temp-file "tax")]
+      (with-open [wrt (writer temp)]
+        (let [tags (element :bioml {:label "x! taxon-to-file matching list"}
+                            (element :taxon {:label "database"}
+                                     (element :file {:format "peptide",
+                                                     :URL (-> (fs/absolute db)
+                                                              str)})))]
+          (emit tags wrt)))
+      temp)
+    (throw (Exception. (str "No database file found at " db)))))
+
+(defn- init-params [tax sfile params out]
+  (let [tags (doall (map #(element :note 
+                                   {:type "input" 
+                                    :label (first %)} (nth % 1))
+                         (merge (default-inputs)
+                                params
+                                {"spectrum, path" (-> (fs/absolute sfile)
+                                                      str)
+                                 "output, path" 
+                                 (-> (fs/absolute out) str)
+                                 "list path, taxonomy information"
+                                 (-> (fs/absolute tax) str)})))
+        temp (fs/temp-file "defaults")]
+    (with-open [wrt (writer temp)]
+      (emit (assoc (element :bioml)
+              :content tags)
+            wrt))
+    temp))
+
+(defn xtandem
+  [db sfile params & {:keys [tandem out-dir] :or {tandem "tandem"
+                                                out-dir "./"}}]
+  (let [out-file (-> (fs/parent (fs/absolute sfile))
+                     (fs/file (str (fs/name sfile) ".tandem.xml"))
+                     str)
+        tax-file (init-database db)
+        def-file (init-params tax-file sfile params out-file)]
+    (try
+      (let [o @(sh [tandem (str def-file)] {:flush-input? true})]
+        (if-not (= 0 (:exit o))
+          (println (str "Warning: Problem in search of "
+                        (fs/name db)
+                        " - "
+                        "Tandem error out: "
+                        (:out o)) o)
+          (do
+            (println
+             (str (fs/name sfile) ":"
+                  (second (re-find #"(Valid models = \d+)" (:out o))) " "
+                  (second (re-find #"(Unique models = \d+)" (:out o))) " "
+                  (second (re-find #"(Estimated false positives = \d+ &#177; \d+)"
+                                   (:out o)))))
+            out-file)))
+      (finally
+       (fs/delete tax-file)
+       (fs/delete def-file)))))
