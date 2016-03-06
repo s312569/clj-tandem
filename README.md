@@ -7,13 +7,13 @@ A parser for X! Tandem XML formatted result files.
 Import from Clojars:
 
 ```clojure
-[clj-tandem "0.1.0"]
+[clj-tandem "0.1.1"]
 ```
 
 Use in your namespace:
 
 ```clojure
-(:require [clj-tandem :as xt])
+(:require [clj-tandem.core :as xt])
 ```
 
 Open a reader on a X! Tandem result file containing and call
