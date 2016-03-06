@@ -229,6 +229,7 @@
    "scoring, cyclic permutation" "no"
    "scoring, include reverse" "no"
    "scoring, pluggable scoring" "yes"
+   "scoring, algorithm" "k-score"
     
    "output, message" "."
    "output, results" "all"
@@ -280,8 +281,7 @@
     temp))
 
 (defn xtandem
-  [db sfile params & {:keys [tandem out-dir] :or {tandem "tandem"
-                                                out-dir "./"}}]
+  [db sfile params & {:keys [tandem] :or {tandem "tandem"}}]
   (let [out-file (-> (fs/parent (fs/absolute sfile))
                      (fs/file (str (fs/name sfile) ".tandem.xml"))
                      str)

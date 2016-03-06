@@ -45,6 +45,17 @@ The functions 'protein-report' and 'peptide-report' return a
 collection of strings representing csv separated lines describing
 peptide and protein identifications.
 
+You can run X! Tandem with the 'xtandem' function which takes paths to
+a FASTA database, a spectra file and a map of X! Tandem
+parameters. There are a set of default parameters (which can be seen
+by using the 'default-inputs' function). By default the parameters are
+for the TPP version of X! Tandem i.e k-score scoring, but this can be
+changed using the parameters map. By default the function assumes
+there is a program 'tandem' in the PATH variable and uses this as the
+executable but this can be changed using the :tandem keyword and
+specifying the path to the X! Tandem executable desired. The function
+returns the path to the output file (which is the spectra file with
+the extension replaced with '.tandem.xml').
 
 ## License
 
