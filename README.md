@@ -7,7 +7,7 @@ A parser for X! Tandem XML formatted result files.
 Import from Clojars:
 
 ```clojure
-[clj-tandem "0.1.1"]
+[clj-tandem "0.1.2"]
 ```
 
 Use in your namespace:
