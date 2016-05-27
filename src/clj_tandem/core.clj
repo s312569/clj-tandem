@@ -5,7 +5,7 @@
             [clojure.data.xml :refer [parse element emit]]
             [clojure.data.zip.xml :refer [xml-> xml1-> text attr= attr]]
             [clojure.zip :refer [xml-zip node]]
-            [clojure.string :refer [split]]))
+            [clojure.string :refer [split trim]]))
 
 (defn group-seq
   "Takes a buffered reader on a X! Tandem XML formatted file and
@@ -22,7 +22,7 @@
   "Returns a hash map of protein info from a peptide
   zipper. Including :id, :expect, :description etc."
   [pz]
-  (let [[acc desc] (split (xml1-> pz :note (attr= :label "description") text)
+  (let [[acc desc] (split (trim (xml1-> pz :note (attr= :label "description") text))
                           #"\s+"
                           2)]
     (merge (->> (xml1-> pz node) :attrs)
@@ -152,7 +152,7 @@
     (->> (group-by :seq (seq peps))
          vals
          (map #(sort-by :expect < %))
-         first)))
+         (map first))))
 
 (defn- collate-proteins
   [peps en]

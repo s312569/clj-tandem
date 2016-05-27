@@ -1,4 +1,4 @@
-(defproject clj-tandem "0.1.2"
+(defproject clj-tandem "0.1.3"
   :description "Parser for X! Tandem XML formatted result files."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
