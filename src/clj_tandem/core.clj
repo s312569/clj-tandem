@@ -197,7 +197,7 @@
    "spectrum, fragment monoisotopic mass error units" "ppm"
    "spectrum, parent monoisotopic mass error units" "ppm"
    "spectrum, fragment mass type" "monoisotopic" 
-   "spectrum, dynamic range" "10000.0"
+   "spectrum, dynamic range" "100.0"
    "spectrum, total peaks" "400"
    "spectrum, maximum parent charge" "5"
    "spectrum, use noise suppression" "yes"
