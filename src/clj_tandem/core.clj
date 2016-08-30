@@ -282,7 +282,9 @@
 
 (defn xtandem
   [db sfile params & {:keys [tandem outfile] :or {tandem "tandem" outfile nil}}]
-  (let [out-file (or outfile (->> (str (fs/name sfile) ".tandem.xml")
+  (let [out-file (or outfile (->> (str (fs/name sfile) "-"
+                                       (quot (System/currentTimeMillis) 1000)
+                                       ".tandem.xml")
                                   (fs/file fs/*cwd*)
                                   str))
         tax-file (init-database db)
